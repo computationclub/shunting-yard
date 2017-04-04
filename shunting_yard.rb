@@ -84,5 +84,9 @@ RSpec.describe ShuntingYard do
     specify do
       expect(subject.shunt(%w(( ( 1 * 4 ) + 2 ) * 3))).to eq(%w(1 4 * 2 + 3 *))
     end
+
+    specify do
+      expect(subject.shunt(%w(1 * ( 2 + 3 )))).to eq(%w(1 2 3 + *))
+    end
   end
 end
