@@ -16,11 +16,16 @@ class ShuntingYard
 
     input.each do |token|
       if operator?(token)
-        while operator_stack.any? && precedence(token) <= precedence(top_of_operator_stack)
+        while operator_stack.any? && operator?(top_of_operator_stack) && precedence(token) <= precedence(top_of_operator_stack)
           output << operator_stack.pop
         end
           
         operator_stack << token
+      elsif token == '('
+        operator_stack << token
+      elsif token == ')'
+        output << operator_stack.pop until top_of_operator_stack == '('
+        operator_stack.pop
       else
         output << token
       end
@@ -61,11 +66,23 @@ RSpec.describe ShuntingYard do
     end
 
     specify do
+      expect(subject.shunt(%w(1 - 2 - 3))).to eq(%w(1 2 - 3 -))
+    end
+
+    specify do
       expect(subject.shunt(%w(1 + 2 * 3))).to eq(%w(1 2 3 * +))
     end
 
     specify do
-      expect(subject.shunt(%w(1 - 2 - 3))).to eq(%w(1 2 - 3 -))
+      expect(subject.shunt(%w(( 1 + 2 ) * 3))).to eq(%w(1 2 + 3 *))
+    end
+
+    specify do
+      expect(subject.shunt(%w(( ( ( 1 + 2 ) ) * 3 ) ))).to eq(%w(1 2 + 3 *))
+    end
+
+    specify do
+      expect(subject.shunt(%w(( ( 1 * 4 ) + 2 ) * 3))).to eq(%w(1 4 * 2 + 3 *))
     end
   end
 end
